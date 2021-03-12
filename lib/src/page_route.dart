@@ -457,7 +457,7 @@ class _FancyBackGestureController<T> {
       );
     } else {
       // This route is destined to pop at this point. Reuse navigator's pop.
-      navigator.pop();
+      navigator.pop(true);
 
       // The popping may have finished inline if already at the target destination.
       if (controller.isAnimating) {
