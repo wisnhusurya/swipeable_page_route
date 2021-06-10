@@ -15,12 +15,15 @@ class SwipeablePageRoute<T> extends CupertinoPageRoute<T> {
     this.canSwipe = true,
     this.canOnlySwipeFromEdge = false,
     this.backGestureDetectionWidth = kMinInteractiveDimension,
+    this.backGestureDetectionStartOffset = 0.0,
     required WidgetBuilder builder,
     String? title,
     RouteSettings? settings,
     bool maintainState = true,
     bool fullscreenDialog = false,
-  }) : super(
+    Duration? transitionDuration,
+  })  : _transitionDuration = transitionDuration,
+        super(
           builder: builder,
           title: title,
           settings: settings,
@@ -33,6 +36,13 @@ class SwipeablePageRoute<T> extends CupertinoPageRoute<T> {
   /// Set this to `false` to disable swiping completely.
   bool canSwipe;
 
+  /// An optional override for the [transitionDuration].
+  final Duration? _transitionDuration;
+
+  @override
+  Duration get transitionDuration =>
+      _transitionDuration ?? super.transitionDuration;
+
   /// Whether only back gestures close to the left (LTR) or right (RTL) screen
   /// edge are counted.
   ///
@@ -43,12 +53,16 @@ class SwipeablePageRoute<T> extends CupertinoPageRoute<T> {
   /// If set to `false`, the user can start dragging anywhere on the screen.
   final bool canOnlySwipeFromEdge;
 
+  /// If [canOnlySwipeFromEdge] is set to `true`, this value controls the width
+  /// of the gesture detection area.
+  ///
+  /// For comparison, in [CupertinoPageRoute] this value is `20`.
+  final double backGestureDetectionWidth;
+
   /// If [canOnlySwipeFromEdge] is set to `true`, this value controls how far
   /// away from the left (LTR) or right (RTL) screen edge a gesture must start
   /// to be recognized for back navigation.
-  ///
-  /// In [CupertinoPageRoute], this value is `20`.
-  final double backGestureDetectionWidth;
+  final double backGestureDetectionStartOffset;
 
   @override
   bool get popGestureEnabled => canSwipe && super.popGestureEnabled;
@@ -95,6 +109,7 @@ class SwipeablePageRoute<T> extends CupertinoPageRoute<T> {
           onStartPopGesture: _startPopGesture,
           canOnlySwipeFromEdge: canOnlySwipeFromEdge,
           backGestureDetectionWidth: backGestureDetectionWidth,
+          backGestureDetectionStartOffset: backGestureDetectionStartOffset,
           child: child,
         ),
       );
@@ -128,6 +143,7 @@ class _FancyBackGestureDetector<T> extends StatefulWidget {
     Key? key,
     required this.canOnlySwipeFromEdge,
     required this.backGestureDetectionWidth,
+    required this.backGestureDetectionStartOffset,
     required this.enabledCallback,
     required this.onStartPopGesture,
     required this.child,
@@ -135,6 +151,7 @@ class _FancyBackGestureDetector<T> extends StatefulWidget {
 
   final bool canOnlySwipeFromEdge;
   final double backGestureDetectionWidth;
+  final double backGestureDetectionStartOffset;
 
   final Widget child;
   final ValueGetter<bool> enabledCallback;
@@ -229,7 +246,7 @@ class _FancyBackGestureDetectorState<T>
         widget.child,
         if (widget.canOnlySwipeFromEdge)
           PositionedDirectional(
-            start: 0,
+            start: widget.backGestureDetectionStartOffset,
             width: dragAreaWidth,
             top: 0,
             bottom: 0,
